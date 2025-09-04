@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Saga: Python Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Equivalent to bg-gray-900 */
+        }
+        .font-bungee {
+            font-family: 'Bungee', cursive;
+        }
+        .health-bar-inner {
+            transition: width 0.5s ease-in-out;
+        }
+        .character-card {
+            transition: transform 0.3s ease-in-out;
+        }
+        .character-card.damaged {
+            animation: shake 0.5s;
+        }
+        .answer-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .answer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div id="game-container" class="w-full max-w-4xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="font-bungee text-3xl md:text-5xl text-yellow-400 tracking-wider" style="text-shadow: 2px 2px 0px #000;">Study Saga</h1>
+            <p class="font-bungee text-xl md:text-2xl text-cyan-400">Python Quest</p>
+        </header>
+
+        <!-- Battle Screen -->
+        <main id="battle-screen">
+            <!-- Characters Display -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Player Card -->
+                <div id="player-card" class="character-card bg-gray-800 p-4 rounded-lg border-2 border-cyan-500 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold">You</h2>
+                            <p class="text-cyan-300">The Python Apprentice</p>
+                        </div>
+                        <div class="text-5xl">🧙‍♂️</div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-sm font-semibold">HP</span>
+                        <div class="w-full bg-gray-700 rounded-full h-6 border-2 border-gray-600">
+                            <div id="player-hp-bar" class="health-bar-inner bg-green-500 h-full rounded-full text-center text-black font-bold text-sm leading-6">100%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enemy Card -->
+                <div id="enemy-card" class="character-card bg-gray-800 p-4 rounded-lg border-2 border-red-500 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 id="enemy-name" class="text-2xl font-bold">Code Gremlin</h2>
+                            <p id="enemy-title" class="text-red-300">Mischievous Foe</p>
+                        </div>
+                        <div id="enemy-avatar" class="text-5xl">👹</div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-sm font-semibold">HP</span>
+                        <div class="w-full bg-gray-700 rounded-full h-6 border-2 border-gray-600">
+                            <div id="enemy-hp-bar" class="health-bar-inner bg-green-500 h-full rounded-full text-center text-black font-bold text-sm leading-6">100%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question & Answers Area -->
+            <div class="bg-gray-800 p-6 rounded-lg border-2 border-yellow-400 shadow-2xl">
+                <div id="question-area">
+                    <p id="battle-counter" class="text-center font-bold text-yellow-400 mb-2">Battle 1 of 5</p>
+                    <p id="question-text" class="text-lg text-center mb-6 h-24">Loading question...</p>
+                    <div id="answer-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Answer buttons will be generated here -->
+                    </div>
+                </div>
+                <div id="feedback-area" class="hidden text-center mt-4">
+                     <p id="feedback-text" class="text-lg p-4 rounded-md"></p>
+                     <button id="next-btn" class="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-6 rounded-lg">Next</button>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Game Over / Victory Screens -->
+        <div id="end-screen" class="hidden text-center bg-gray-800 p-8 rounded-lg border-2 border-gray-600 shadow-2xl fade-in">
+            <h2 id="end-message-title" class="font-bungee text-4xl mb-4"></h2>
+            <p id="end-message-text" class="text-xl mb-6"></p>
+            <button id="restart-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg text-lg">Restart Quest</button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENT REFERENCES ---
+            const battleScreen = document.getElementById('battle-screen');
+            const endScreen = document.getElementById('end-screen');
+            const playerCard = document.getElementById('player-card');
+            const enemyCard = document.getElementById('enemy-card');
+            const playerHpBar = document.getElementById('player-hp-bar');
+            const enemyHpBar = document.getElementById('enemy-hp-bar');
+            const enemyName = document.getElementById('enemy-name');
+            const enemyAvatar = document.getElementById('enemy-avatar');
+            const battleCounter = document.getElementById('battle-counter');
+            const questionText = document.getElementById('question-text');
+            const answerOptionsContainer = document.getElementById('answer-options');
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackText = document.getElementById('feedback-text');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const endMessageTitle = document.getElementById('end-message-title');
+            const endMessageText = document.getElementById('end-message-text');
+
+            // --- GAME DATA ---
+            const battles = [
+                {
+                    enemy: { name: "Code Gremlin", avatar: "👹" },
+                    question: "A mischievous Code Gremlin holds up a piece of text. 'My treasure is the phrase \\'Hello, Adventurer!\\'. How do you store it in a variable called greeting?'",
+                    options: [
+                        { text: 'make greeting = "Hello, Adventurer!"', correct: false },
+                        { text: 'greeting = "Hello, Adventurer!"', correct: true },
+                        { text: 'var greeting = "Hello, Adventurer!"', correct: false },
+                        { text: 'greeting: "Hello, Adventurer!"', correct: false },
+                    ],
+                    explanation: "Correct! In Python, you use the equals sign (=) to assign a value to a variable."
+                },
+                {
+                    enemy: { name: "Syntax Serpent", avatar: "🐍" },
+                    question: "A giant Syntax Serpent blocks your path. 'Hssss... To pass, you must display the number of my coils, which is 8. How do you show the number 8 on the screen?'",
+                    options: [
+                        { text: 'print(8)', correct: true },
+                        { text: 'log(8)', correct: false },
+                        { text: 'echo 8', correct: false },
+                        { text: 'show(8)', correct: false },
+                    ],
+                    explanation: "Huzzah! The print() function is the standard way to display information in Python."
+                },
+                {
+                    enemy: { name: "Indecisive Slime", avatar: "🦠" },
+                    question: "A bubbling Indecisive Slime quivers before you. 'I will only retreat if your strength variable is greater than 10. How do you write the code to check if that\\'s true?'",
+                    options: [
+                        { text: 'if strength > 10 THEN:', correct: false },
+                        { text: 'if (strength > 10) { }', correct: false },
+                        { text: 'if strength > 10:', correct: true },
+                        { text: 'CHECK strength > 10:', correct: false },
+                    ],
+                    explanation: "That's it! Python uses an if statement followed by a condition and a colon (:) to make decisions."
+                },
+                {
+                    enemy: { name: "List Lich", avatar: "💀" },
+                    question: "The fearsome List Lich points at its treasure. 'You need a list to hold my loot: a \\'gem\\', a \\'gold_coin\\', and a \\'key\\'. How do you create a Python list called loot with these items?'",
+                    options: [
+                        { text: 'loot = {"gem", "gold_coin", "key"}', correct: false },
+                        { text: 'loot = ("gem", "gold_coin", "key")', correct: false },
+                        { text: 'loot = <"gem", "gold_coin", "key">', correct: false },
+                        { text: 'loot = ["gem", "gold_coin", "key"]', correct: true },
+                    ],
+                    explanation: "Excellent! Python lists are created using square brackets []."
+                },
+                {
+                    enemy: { name: "Function Fiend", avatar: "👻" },
+                    question: "A Function Fiend appears in a puff of smoke. 'To use my magic, you must first define a spell! How do you create a simple Python function called heal?'",
+                    options: [
+                        { text: 'function heal():', correct: false },
+                        { text: 'define heal():', correct: false },
+                        { text: 'def heal():', correct: true },
+                        { text: 'proc heal():', correct: false },
+                    ],
+                    explanation: "Magnificent! You create a function in Python using the 'def' keyword."
+                },
+            ];
+
+            // --- GAME STATE ---
+            let player = { hp: 100, maxHp: 100 };
+            let enemy = { hp: 100, maxHp: 100 };
+            let currentBattleIndex = 0;
+            const DAMAGE_AMOUNT = 34; // 3 hits to defeat
+
+            // --- GAME LOGIC FUNCTIONS ---
+            
+            function startGame() {
+                player.hp = player.maxHp;
+                currentBattleIndex = 0;
+                battleScreen.classList.remove('hidden');
+                endScreen.classList.add('hidden');
+                loadBattle(currentBattleIndex);
+                updateHPBars();
+            }
+
+            function loadBattle(index) {
+                if (index >= battles.length) {
+                    showVictory();
+                    return;
+                }
+                
+                const battle = battles[index];
+                enemy.hp = enemy.maxHp;
+                
+                enemyName.textContent = battle.enemy.name;
+                enemyAvatar.textContent = battle.enemy.avatar;
+                battleCounter.textContent = `Battle ${index + 1} of ${battles.length}`;
+                questionText.textContent = battle.question;
+                
+                answerOptionsContainer.innerHTML = '';
+                feedbackArea.classList.add('hidden');
+                answerOptionsContainer.classList.remove('hidden');
+
+                battle.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.innerHTML = `<span class="font-mono bg-gray-900 bg-opacity-50 px-2 py-1 rounded-md">${option.text}</span>`;
+                    button.className = "answer-btn bg-cyan-600 hover:bg-cyan-700 p-4 rounded-lg text-left";
+                    button.onclick = () => handleAnswer(option.correct, battle.explanation);
+                    answerOptionsContainer.appendChild(button);
+                });
+
+                updateHPBars();
+            }
+
+            function handleAnswer(isCorrect, explanation) {
+                answerOptionsContainer.classList.add('hidden');
+                feedbackArea.classList.remove('hidden');
+                feedbackText.textContent = explanation;
+                
+                if (isCorrect) {
+                    enemy.hp = 0; // Defeat enemy in one shot for visual feedback
+                    feedbackText.className = "text-lg p-4 rounded-md bg-green-500 bg-opacity-20 border border-green-500 text-green-300";
+                    enemyCard.classList.add('damaged');
+                } else {
+                    player.hp = Math.max(0, player.hp - DAMAGE_AMOUNT);
+                    feedbackText.className = "text-lg p-4 rounded-md bg-red-500 bg-opacity-20 border border-red-500 text-red-300";
+                    playerCard.classList.add('damaged');
+                }
+                
+                updateHPBars();
+                
+                // Remove animation class after it finishes
+                setTimeout(() => {
+                    playerCard.classList.remove('damaged');
+                    enemyCard.classList.remove('damaged');
+                }, 500);
+            }
+            
+            function proceedToNextStep() {
+                 // Check for loss condition first. This happens if the player's last move caused their HP to drop to 0.
+                if (player.hp <= 0) {
+                    showGameOver();
+                    return;
+                }
+
+                // If the player is still alive, advance to the next battle.
+                currentBattleIndex++;
+
+                // Check if the quest is completed.
+                if (currentBattleIndex >= battles.length) {
+                    // If they've gone through all battles and are alive, it's a victory.
+                    showVictory();
+                } else {
+                    // Otherwise, load the next battle.
+                    loadBattle(currentBattleIndex);
+                }
+            }
+
+            function updateHPBars() {
+                const playerHpPercent = (player.hp / player.maxHp) * 100;
+                playerHpBar.style.width = `${playerHpPercent}%`;
+                playerHpBar.textContent = `${Math.round(playerHpPercent)}%`;
+                
+                const enemyHpPercent = (enemy.hp / enemy.maxHp) * 100;
+                enemyHpBar.style.width = `${enemyHpPercent}%`;
+                enemyHpBar.textContent = `${Math.round(enemyHpPercent)}%`;
+                
+                // Change color based on HP
+                [playerHpBar, enemyHpBar].forEach((bar, index) => {
+                    const percent = index === 0 ? playerHpPercent : enemyHpPercent;
+                    bar.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
+                    if (percent > 50) {
+                        bar.classList.add('bg-green-500');
+                    } else if (percent > 20) {
+                        bar.classList.add('bg-yellow-500');
+                    } else {
+                        bar.classList.add('bg-red-500');
+                    }
+                });
+            }
+
+            function showGameOver() {
+                battleScreen.classList.add('hidden');
+                endScreen.classList.remove('hidden');
+                endMessageTitle.textContent = "Game Over";
+                endMessageTitle.className = "font-bungee text-4xl text-red-500 mb-4";
+                endMessageText.textContent = "The monsters have bested you. But a true apprentice never gives up. Study the explanations and try again!";
+            }
+            
+            function showVictory() {
+                battleScreen.classList.add('hidden');
+                endScreen.classList.remove('hidden');
+                endMessageTitle.textContent = "Victory!";
+                endMessageTitle.className = "font-bungee text-4xl text-yellow-400 mb-4";
+                endMessageText.textContent = "You have defeated all the enemies and completed the Python Quest! Your journey as a developer has just begun.";
+            }
+
+            // --- EVENT LISTENERS ---
+            nextBtn.addEventListener('click', proceedToNextStep);
+            restartBtn.addEventListener('click', startGame);
+
+            // --- INITIALIZE GAME ---
+            startGame();
+        });
+    </script>
+</body>
+</html>
+
