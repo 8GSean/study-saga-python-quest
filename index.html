@@ -46,26 +46,26 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-2 sm:p-4">
 
-    <div id="game-container" class="w-full max-w-4xl mx-auto">
+    <div id="game-container" class="w-full max-w-3xl mx-auto">
         <header class="text-center mb-6">
-            <h1 class="font-bungee text-3xl md:text-5xl text-yellow-400 tracking-wider" style="text-shadow: 2px 2px 0px #000;">Study Saga</h1>
-            <p class="font-bungee text-xl md:text-2xl text-cyan-400">Python Quest</p>
+            <h1 class="font-bungee text-2xl sm:text-3xl md:text-5xl text-yellow-400 tracking-wider" style="text-shadow: 2px 2px 0px #000;">Study Saga</h1>
+            <p class="font-bungee text-lg sm:text-xl md:text-2xl text-cyan-400">Python Quest</p>
         </header>
 
         <!-- Battle Screen -->
         <main id="battle-screen">
             <!-- Characters Display -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
                 <!-- Player Card -->
                 <div id="player-card" class="character-card bg-gray-800 p-4 rounded-lg border-2 border-cyan-500 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-2xl font-bold">{{first_name}}</h2>
+                            <h2 id="player-name" class="text-xl sm:text-2xl font-bold">You</h2>
                             <p class="text-cyan-300">The Python Apprentice</p>
                         </div>
-                        <div class="text-5xl">🧙‍♂️</div>
+                        <div class="text-4xl sm:text-5xl">🧙‍♂️</div>
                     </div>
                     <div class="mt-4">
                         <span class="text-sm font-semibold">HP</span>
@@ -79,10 +79,10 @@
                 <div id="enemy-card" class="character-card bg-gray-800 p-4 rounded-lg border-2 border-red-500 shadow-lg">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 id="enemy-name" class="text-2xl font-bold">Code Gremlin</h2>
+                            <h2 id="enemy-name" class="text-xl sm:text-2xl font-bold">Code Gremlin</h2>
                             <p id="enemy-title" class="text-red-300">Mischievous Foe</p>
                         </div>
-                        <div id="enemy-avatar" class="text-5xl">👹</div>
+                        <div id="enemy-avatar" class="text-4xl sm:text-5xl">👹</div>
                     </div>
                     <div class="mt-4">
                         <span class="text-sm font-semibold">HP</span>
@@ -94,10 +94,10 @@
             </div>
 
             <!-- Question & Answers Area -->
-            <div class="bg-gray-800 p-6 rounded-lg border-2 border-yellow-400 shadow-2xl">
+            <div class="bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-yellow-400 shadow-2xl">
                 <div id="question-area">
                     <p id="battle-counter" class="text-center font-bold text-yellow-400 mb-2">Battle 1 of 5</p>
-                    <p id="question-text" class="text-lg text-center mb-6 h-24">Loading question...</p>
+                    <p id="question-text" class="text-lg text-center mb-6 min-h-[7rem] flex items-center justify-center">Loading question...</p>
                     <div id="answer-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Answer buttons will be generated here -->
                     </div>
@@ -110,16 +110,30 @@
         </main>
         
         <!-- Game Over / Victory Screens -->
-        <div id="end-screen" class="hidden text-center bg-gray-800 p-8 rounded-lg border-2 border-gray-600 shadow-2xl fade-in">
-            <h2 id="end-message-title" class="font-bungee text-4xl mb-4"></h2>
-            <p id="end-message-text" class="text-xl mb-6"></p>
-            <button id="restart-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg text-lg">Restart Quest</button>
+        <div id="end-screen" class="hidden text-center bg-gray-800 p-6 sm:p-8 rounded-lg border-2 border-gray-600 shadow-2xl fade-in">
+            <h2 id="end-message-title" class="font-bungee text-3xl sm:text-4xl mb-4"></h2>
+            <p id="end-message-text" class="text-lg sm:text-xl mb-6"></p>
+            <button id="restart-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-lg text-base sm:text-lg">Restart Quest</button>
         </div>
 
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- PERSONALIZE PLAYER NAME ---
+            const playerNameElement = document.getElementById('player-name');
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const firstName = urlParams.get('first_name');
+                if (firstName) {
+                    // Sanitize to prevent HTML injection and capitalize the first letter
+                    const sanitizedName = firstName.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    playerNameElement.textContent = sanitizedName.charAt(0).toUpperCase() + sanitizedName.slice(1);
+                }
+            } catch (e) {
+                console.error("Could not parse URL params for player name:", e);
+            }
+
             // --- DOM ELEMENT REFERENCES ---
             const battleScreen = document.getElementById('battle-screen');
             const endScreen = document.getElementById('end-screen');
@@ -236,7 +250,7 @@
                 battle.options.forEach(option => {
                     const button = document.createElement('button');
                     button.innerHTML = `<span class="font-mono bg-gray-900 bg-opacity-50 px-2 py-1 rounded-md">${option.text}</span>`;
-                    button.className = "answer-btn bg-cyan-600 hover:bg-cyan-700 p-4 rounded-lg text-left";
+                    button.className = "answer-btn bg-cyan-600 hover:bg-cyan-700 p-3 sm:p-4 rounded-lg text-left";
                     button.onclick = () => handleAnswer(option.correct, battle.explanation);
                     answerOptionsContainer.appendChild(button);
                 });
@@ -315,7 +329,7 @@
                 battleScreen.classList.add('hidden');
                 endScreen.classList.remove('hidden');
                 endMessageTitle.textContent = "Game Over";
-                endMessageTitle.className = "font-bungee text-4xl text-red-500 mb-4";
+                endMessageTitle.className = "font-bungee text-3xl sm:text-4xl text-red-500 mb-4";
                 endMessageText.textContent = "The monsters have bested you. But a true apprentice never gives up. Study the explanations and try again!";
             }
             
@@ -323,7 +337,7 @@
                 battleScreen.classList.add('hidden');
                 endScreen.classList.remove('hidden');
                 endMessageTitle.textContent = "Victory!";
-                endMessageTitle.className = "font-bungee text-4xl text-yellow-400 mb-4";
+                endMessageTitle.className = "font-bungee text-3xl sm:text-4xl text-yellow-400 mb-4";
                 endMessageText.textContent = "You have defeated all the enemies and completed the Python Quest! Your journey as a developer has just begun.";
             }
 
@@ -337,4 +351,5 @@
     </script>
 </body>
 </html>
+
 
