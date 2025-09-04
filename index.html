@@ -114,6 +114,7 @@
             <h2 id="end-message-title" class="font-bungee text-3xl sm:text-4xl mb-4"></h2>
             <p id="end-message-text" class="text-lg sm:text-xl mb-6"></p>
             <button id="restart-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-lg text-base sm:text-lg">Restart Quest</button>
+            <p id="victory-continue-message" class="hidden mt-6 text-gray-300">You can also click the 'Complete and Continue' button on the platform to advance.</p>
         </div>
 
     </div>
@@ -152,17 +153,18 @@
             const restartBtn = document.getElementById('restart-btn');
             const endMessageTitle = document.getElementById('end-message-title');
             const endMessageText = document.getElementById('end-message-text');
+            const victoryContinueMessage = document.getElementById('victory-continue-message');
 
             // --- GAME DATA ---
             const battles = [
                 {
                     enemy: { name: "Code Gremlin", avatar: "👹" },
-                    question: "A mischievous Code Gremlin holds up a piece of text. 'My treasure is the phrase \\'Hello, Adventurer!\\'. How do you store it in a variable called greeting?'",
+                    question: "A mischievous Code Gremlin holds up a piece of text. 'My treasure is the phrase 'Hello, World!'. How do you store it in a variable called greeting?'",
                     options: [
-                        { text: 'make greeting = "Hello, Adventurer!"', correct: false },
-                        { text: 'greeting = "Hello, Adventurer!"', correct: true },
-                        { text: 'var greeting = "Hello, Adventurer!"', correct: false },
-                        { text: 'greeting: "Hello, Adventurer!"', correct: false },
+                        { text: 'make greeting = "Hello, World!"', correct: false },
+                        { text: 'greeting = "Hello, World!"', correct: true },
+                        { text: 'var greeting = "Hello, World!"', correct: false },
+                        { text: 'greeting: "Hello, World!"', correct: false },
                     ],
                     explanation: "Correct! In Python, you use the equals sign (=) to assign a value to a variable."
                 },
@@ -225,6 +227,7 @@
                 currentBattleIndex = 0;
                 battleScreen.classList.remove('hidden');
                 endScreen.classList.add('hidden');
+                victoryContinueMessage.classList.add('hidden');
                 loadBattle(currentBattleIndex);
                 updateHPBars();
             }
@@ -328,6 +331,7 @@
             function showGameOver() {
                 battleScreen.classList.add('hidden');
                 endScreen.classList.remove('hidden');
+                victoryContinueMessage.classList.add('hidden');
                 endMessageTitle.textContent = "Game Over";
                 endMessageTitle.className = "font-bungee text-3xl sm:text-4xl text-red-500 mb-4";
                 endMessageText.textContent = "The monsters have bested you. But a true apprentice never gives up. Study the explanations and try again!";
@@ -336,6 +340,7 @@
             function showVictory() {
                 battleScreen.classList.add('hidden');
                 endScreen.classList.remove('hidden');
+                victoryContinueMessage.classList.remove('hidden');
                 endMessageTitle.textContent = "Victory!";
                 endMessageTitle.className = "font-bungee text-3xl sm:text-4xl text-yellow-400 mb-4";
                 endMessageText.textContent = "You have defeated all the enemies and completed the Python Quest! Your journey as a developer has just begun.";
@@ -351,5 +356,4 @@
     </script>
 </body>
 </html>
-
 
